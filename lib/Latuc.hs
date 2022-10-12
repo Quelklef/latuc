@@ -1,15 +1,19 @@
 module Latuc where
 
+import           Prelude
+
 import           Control.Applicative    (liftA2)
+import           Control.Category       ((>>>))
 import           Control.Monad          (void)
 import           Data.Char              (isLetter, isSpace)
 import           Data.Foldable          (fold)
 import           Data.Function          ((&))
+import           Data.Functor           ((<&>))
 import           Data.Functor.Identity  (Identity (..))
 import           Data.List              (isPrefixOf)
 import           Data.Maybe             (fromMaybe)
 import qualified Data.Set               as Set
-import           Text.Parsec
+import           Text.Parsec            hiding (count)
 
 import qualified Helper.Binary          as Binary
 import qualified Helper.Escape          as Escape
@@ -32,34 +36,45 @@ isLiteralChar c =
   not (isSpace c) && (c `notElem` "$^-_~{}\\")
 
 
-spacesCountNewLines :: Parser Int
-spacesCountNewLines =
-  cnt (== '\n') <$> many1 space
-  where cnt p = length . filter p
+data HadBreak = HadBreak | DidntHaveBreak
+
+whitespace1 :: Parser HadBreak
+whitespace1 = many1 space <&> (count (== '\n') >>> (> 1) >>> fromBool)
+  where
+
+  count p = length . filter p
+
+  fromBool True  = HadBreak
+  fromBool False = DidntHaveBreak
+
+whitespaceNoBreak :: Parser ()
+whitespaceNoBreak = do
+  optionMaybe whitespace1
+  >>= \case
+    Nothing             -> pure ()
+    Just DidntHaveBreak -> pure ()
+    Just HadBreak       -> fail ""
+
+whitespaceCanBreak :: Parser String
+whitespaceCanBreak =
+  optionMaybe whitespace1
+  <&> \case
+    Nothing             -> ""
+    Just DidntHaveBreak -> ""
+    Just HadBreak       -> "\n\n"
 
 spacesBlock :: Parser String
-spacesBlock = do
-  n <- spacesCountNewLines
-  pure $ if n <= 1 then " " else "\n\n"
+spacesBlock =
+  whitespace1
+  <&> \case
+    HadBreak       -> "\n\n"
+    DidntHaveBreak -> " "
 
 literalCharsBlock :: Parser String
 literalCharsBlock = many1 (satisfy isLiteralChar)
 
 bracketBlock :: Parser String
 bracketBlock = string "{" *> blocks <* string "}"
-
-command_ignoreSpaces :: Parser ()
-command_ignoreSpaces = do
-  optionMaybe spacesCountNewLines >>= \case
-          Nothing -> pure ()
-          Just cnt -> if
-            | cnt <= 1  -> pure ()
-            | otherwise -> fail "!"
-
-command_maybeNewLine :: Parser String
-command_maybeNewLine =
-  try (spacesCountNewLines >>= pure . (\cnt -> if cnt <= 1 then "" else "\n\n"))
-  <|> pure ""
 
 command_param :: Parser String
 command_param = try (bracketBlock <|> command_commandBlock) <|> (singleton <$> satisfy isLiteralChar)
@@ -104,35 +119,35 @@ command_handleCommand command = if
 
   handleUnaries :: String -> Parser String
   handleUnaries u = do
-    command_ignoreSpaces
+    whitespaceNoBreak
     p <- command_param
     fromEither $ Unary.translate u p
 
   handleBinaries :: String -> Parser String
   handleBinaries b = do
-    command_ignoreSpaces
+    whitespaceNoBreak
     p1 <- command_param
-    command_ignoreSpaces
+    whitespaceNoBreak
     p2 <- command_param
     fromEither $ Binary.translate b p1 p2
 
   handleStyles :: String -> Parser String
   handleStyles s = do
-    nl <- command_maybeNewLine
+    nl <- whitespaceCanBreak
     p <- blocks
     fromEither . fmap (nl <>) $ Style.translate s p
 
   handleUnaryWithOption :: String -> Parser String
   handleUnaryWithOption uo = do
-    command_ignoreSpaces
+    whitespaceNoBreak
     opt <- optionMaybe (do
       void $ string "["
-      command_ignoreSpaces
+      whitespaceNoBreak
       c <- fold <$> many command_blockInOption
-      command_ignoreSpaces
+      whitespaceNoBreak
       void $ string "]"
       pure c)
-    command_ignoreSpaces
+    whitespaceNoBreak
     p <- command_param
     fromEither $ UnaryWithOption.translate uo (opt & fromMaybe "") p
 
