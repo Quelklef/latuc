@@ -8,6 +8,6 @@ v1 of latuc is a one-to-one Haskell port of the fabulous [latex2unicode](https:/
 
 ```bash
 $ nix-build
-$ echo '\mathbf{AB}_{\Delta-1}' | ./result/bin/latuc
+$ echo '\mathbf{AB}^x_{\Delta-1}' | ./result/bin/latuc
 𝐀𝐁ˣ_(Δ-1)
 ```
