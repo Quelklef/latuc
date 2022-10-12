@@ -12,21 +12,25 @@ common shared
   ghc-options: -Wall -Wextra
 
 
-library
-    import: shared
-    hs-source-dirs:   lib
-    exposed-modules:  Latuc
+common deps
     build-depends:
           base ^>=4.15.1.0
         , parsec
         , containers
         , extra
+
+
+library
+    import: shared, deps
+    hs-source-dirs: lib
+    exposed-modules: Latuc
     other-modules:
           Helper.Binary
         , Helper.Escape
         , Helper.Style
         , Helper.Unary
         , Helper.UnaryWithOption
+        , Helper.Mappings
     default-language: Haskell2010
 
 
@@ -41,15 +45,9 @@ executable latuc
 
 
 test-suite test
-    import: shared
+    import: shared, deps
     type: exitcode-stdio-1.0
     hs-source-dirs: lib, test
     main-is: Test.hs
-    other-modules:
-          Latuc
-    build-depends:
-          base ^>=4.15.1.0
-        , latuc
-        , parsec
-        , containers
-        , extra
+    other-modules: Latuc
+    build-depends: latuc
