@@ -76,34 +76,33 @@ literalCharsBlock = many1 (satisfy isLiteralChar)
 bracketBlock :: Parser String
 bracketBlock = string "{" *> blocks <* string "}"
 
-command_param :: Parser String
-command_param = try (bracketBlock <|> command_commandBlock) <|> (singleton <$> satisfy isLiteralChar)
+commandParam :: Parser String
+commandParam = try (bracketBlock <|> commandBlock) <|> (singleton <$> satisfy isLiteralChar)
 
-command_name :: Parser String
-command_name =
+commandName :: Parser String
+commandName =
   try ((fmap fold . many1) (string "-"))
   <|> try ((fmap singleton . satisfy) (`elem` "$^_~"))
   <|> liftA2 (<>) (string "\\") (try (many1 $ satisfy isLetter) <|> fmap singleton anyChar)
 
-command_literalCharsBlockInOption :: Parser String
-command_literalCharsBlockInOption = (many1 . satisfy) (\c -> c /= ']' && isLiteralChar c)
+commandLiteralCharsBlockInOption :: Parser String
+commandLiteralCharsBlockInOption = (many1 . satisfy) (\c -> c /= ']' && isLiteralChar c)
 
-command_commandBlockInOption :: Parser String
-command_commandBlockInOption =
-  command_name >>=
-    (\s -> if Set.member s Style.names
-           then pure ""
-           else command_handleCommand s)
+commandBlockInOption :: Parser String
+commandBlockInOption =
+  try commandLiteralCharsBlockInOption
+  <|> try bracketBlock
+  <|> do
+          name <- commandName
+          if Set.member name Style.names
+          then pure ""
+          else handleCommand name
 
-command_blockInOption :: Parser String
-command_blockInOption =
-  try command_literalCharsBlockInOption <|> try bracketBlock <|> command_commandBlockInOption
+commandBlock :: Parser String
+commandBlock = commandName >>= handleCommand
 
-command_commandBlock :: Parser String
-command_commandBlock = command_name >>= command_handleCommand
-
-command_handleCommand :: String -> Parser String
-command_handleCommand command = if
+handleCommand :: String -> Parser String
+handleCommand command = if
   | command `elem` Escape.names          -> handleEscapeChars command
   | command `elem` Unary.names           -> handleUnaries command
   | command `elem` Binary.names          -> handleBinaries command
@@ -120,15 +119,15 @@ command_handleCommand command = if
   handleUnaries :: String -> Parser String
   handleUnaries u = do
     whitespaceNoBreak
-    p <- command_param
+    p <- commandParam
     fromEither $ Unary.translate u p
 
   handleBinaries :: String -> Parser String
   handleBinaries b = do
     whitespaceNoBreak
-    p1 <- command_param
+    p1 <- commandParam
     whitespaceNoBreak
-    p2 <- command_param
+    p2 <- commandParam
     fromEither $ Binary.translate b p1 p2
 
   handleStyles :: String -> Parser String
@@ -143,12 +142,12 @@ command_handleCommand command = if
     opt <- optionMaybe (do
       void $ string "["
       whitespaceNoBreak
-      c <- fold <$> many command_blockInOption
+      c <- fold <$> many commandBlockInOption
       whitespaceNoBreak
       void $ string "]"
       pure c)
     whitespaceNoBreak
-    p <- command_param
+    p <- commandParam
     fromEither $ UnaryWithOption.translate uo (opt & fromMaybe "") p
 
   handleUnknown :: String -> Parser String
@@ -158,23 +157,23 @@ command_handleCommand command = if
     else let
       parserNoParam = pure other
       parserUnary = do
-        p1 <- command_param
+        p1 <- commandParam
         pure $ other <> "{" <> p1 <> "}"
       parserBinary = do
-        p1 <- command_param
-        p2 <- command_param
+        p1 <- commandParam
+        p2 <- commandParam
         pure $ other <> "{" <> p1 <> "}{" <> p2 <> "}"
       parserTernary = do
-        p1 <- command_param
-        p2 <- command_param
-        p3 <- command_param
+        p1 <- commandParam
+        p2 <- commandParam
+        p3 <- commandParam
         pure $ other <> "{" <> p1 <> "}{" <> p2 <> "}{" <> p3 <> "}"
 
       in try parserTernary <|> try parserBinary <|> try parserUnary <|> parserNoParam
 
 
 block :: Parser String
-block = spacesBlock <|> literalCharsBlock <|> bracketBlock <|> command_commandBlock
+block = spacesBlock <|> literalCharsBlock <|> bracketBlock <|> commandBlock
 
 blocks :: Parser String
 blocks = fold <$> many block

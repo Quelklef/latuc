@@ -9,6 +9,7 @@ common shared
     , LambdaCase
     , MultiWayIf
     , BlockArguments
+    , DoAndIfThenElse
 
   ghc-options: -Wall -Wextra
 
