@@ -1,14 +1,10 @@
 module Main where
 
-import           Data.Foldable          (for_, toList)
-import           Data.List.Extra        (trim)
+import           Data.Foldable   (for_, toList)
+import           Data.List.Extra (trim)
+import qualified Data.Map        as Map
 
-import qualified Helper.Binary          as Binary
-import qualified Helper.Escape          as Escape
-import qualified Helper.Style           as Style
-import qualified Helper.Unary           as Unary
-import qualified Helper.UnaryWithOption as UnaryWithOption
-import qualified Latuc                  as Latuc
+import qualified Latuc           as Latuc
 
 main :: IO ()
 main = do
@@ -35,9 +31,8 @@ impl = do
 
 
   header "Command names should be trimmed"
-  for_ [Escape.names, Unary.names, Style.names, UnaryWithOption.names, Binary.names]
-    $ \names -> for_ (toList names)
-      $ \name -> trim name `shouldBe` name
+  for_ (toList . Map.keys $ Latuc.commands)
+    $ \name -> trim name `shouldBe` name
 
 
   header "Empty string"

@@ -20,19 +20,14 @@ common deps
         , parsec
         , containers
         , extra
-
+        , transformers
 
 library
     import: shared, deps
     hs-source-dirs: lib
     exposed-modules: Latuc
     other-modules:
-          Helper.Binary
-        , Helper.Escape
-        , Helper.Style
-        , Helper.Unary
-        , Helper.UnaryWithOption
-        , Helper.Mappings
+          Latuc.Mappings
     default-language: Haskell2010
 
 

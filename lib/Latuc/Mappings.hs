@@ -1,20 +1,4 @@
-module Helper.Mappings
-  ( frac
-  , combining
-  , CombiningType (..)
-  , not
-  , subscripts
-  , superscripts
-  , bb
-  , bf
-  , cal
-  , frak
-  , it
-  , tt
-  , styles
-  , escapes
-  , alias
-  ) where
+module Latuc.Mappings where
 
 import           Prelude  hiding (not)
 
@@ -41,43 +25,43 @@ frac = Map.fromList
   , (("7", "8"), "⅞")
   ]
 
-
 data CombiningType = FirstChar | LastChar | EveryChar
 
 combining :: Map String (Char, CombiningType)
 combining = Map.fromList
-    [ ("\\grave"      , ('\x0300', FirstChar))
-    , ("\\`"          , ('\x0300', FirstChar))
-    , ("\\acute"      , ('\x0301', FirstChar))
-    , ("\\'"          , ('\x0301', FirstChar))
-    , ("\\hat"        , ('\x0302', FirstChar))
-    , ("\\^"          , ('\x0302', FirstChar))
-    , ("\\tilde"      , ('\x0303', FirstChar))
-    , ("\\~"          , ('\x0303', FirstChar))
-    , ("\\bar"        , ('\x0304', FirstChar))
-    , ("\\="          , ('\x0304', FirstChar))
-    , ("\\overline"   , ('\x0305', EveryChar))
-    , ("\\breve"      , ('\x0306', FirstChar))
-    , ("\\u"          , ('\x0306', FirstChar))
-    , ("\\dot"        , ('\x0307', FirstChar))
-    , ("\\."          , ('\x0307', FirstChar))
-    , ("\\ddot"       , ('\x0308', FirstChar))
-    , ("\\\""         , ('\x0308', FirstChar))
-    , ("\\mathring"   , ('\x030A', FirstChar))
-    , ("\\r"          , ('\x030A', FirstChar))
-    , ("\\H"          , ('\x030B', FirstChar))
-    , ("\\check"      , ('\x030C', FirstChar))
-    , ("\\v"          , ('\x030C', FirstChar))
-    , ("\\d"          , ('\x0323', FirstChar))
-    , ("\\c"          , ('\x0327', FirstChar))
-    , ("\\k"          , ('\x0328', LastChar))
-    , ("\\b"          , ('\x0332', FirstChar))
-    , ("\\underline"  , ('\x0332', EveryChar))
-    , ("\\underbar"   , ('\x0332', EveryChar))
-    , ("\\t"          , ('\x0361', FirstChar))
-    , ("\\vec"        , ('\x20D7', FirstChar))
-    , ("\\textcircled", ('\x20DD', FirstChar))
-    ]
+  [ ("\\grave"      , ('\x0300', FirstChar))
+  , ("\\`"          , ('\x0300', FirstChar))
+  , ("\\acute"      , ('\x0301', FirstChar))
+  , ("\\'"          , ('\x0301', FirstChar))
+  , ("\\hat"        , ('\x0302', FirstChar))
+  , ("\\^"          , ('\x0302', FirstChar))
+  , ("\\tilde"      , ('\x0303', FirstChar))
+  , ("\\~"          , ('\x0303', FirstChar))
+  , ("\\bar"        , ('\x0304', FirstChar))
+  , ("\\="          , ('\x0304', FirstChar))
+  , ("\\overline"   , ('\x0305', EveryChar))
+  , ("\\breve"      , ('\x0306', FirstChar))
+  , ("\\u"          , ('\x0306', FirstChar))
+  , ("\\dot"        , ('\x0307', FirstChar))
+  , ("\\."          , ('\x0307', FirstChar))
+  , ("\\ddot"       , ('\x0308', FirstChar))
+  , ("\\\""         , ('\x0308', FirstChar))
+  , ("\\mathring"   , ('\x030A', FirstChar))
+  , ("\\r"          , ('\x030A', FirstChar))
+  , ("\\H"          , ('\x030B', FirstChar))
+  , ("\\check"      , ('\x030C', FirstChar))
+  , ("\\v"          , ('\x030C', FirstChar))
+  , ("\\d"          , ('\x0323', FirstChar))
+  , ("\\c"          , ('\x0327', FirstChar))
+  , ("\\k"          , ('\x0328', LastChar))
+  , ("\\b"          , ('\x0332', FirstChar))
+  , ("\\underline"  , ('\x0332', EveryChar))
+  , ("\\underbar"   , ('\x0332', EveryChar))
+  , ("\\t"          , ('\x0361', FirstChar))
+  , ("\\vec"        , ('\x20D7', FirstChar))
+  , ("\\textcircled", ('\x20DD', FirstChar))
+  ]
+
 
 not :: Map String String
 not = Map.fromList
@@ -115,116 +99,116 @@ not = Map.fromList
   , ("⋟", "⋡")
   ]
 
-subscripts :: Map Char Char
-subscripts = Map.fromList
-    [ ('χ', 'ᵪ')
-    , ('φ', 'ᵩ')
-    , ('ρ', 'ᵨ')
-    , ('γ', 'ᵧ')
-    , ('β', 'ᵦ')
-    , ('x', 'ₓ')
-    , ('v', 'ᵥ')
-    , ('u', 'ᵤ')
-    , ('r', 'ᵣ')
-    , ('o', 'ₒ')
-    , ('i', 'ᵢ')
-    , ('j', 'ⱼ')
-    , ('e', 'ₑ')
-    , ('a', 'ₐ')
-    , ('=', '₌')
-    , ('9', '₉')
-    , ('8', '₈')
-    , ('7', '₇')
-    , ('6', '₆')
-    , ('5', '₅')
-    , ('4', '₄')
-    , ('3', '₃')
-    , ('2', '₂')
-    , ('1', '₁')
-    , ('0', '₀')
-    , ('-', '₋')
-    , ('−', '₋')
-    , ('+', '₊')
-    , (')', '₎')
-    , ('(', '₍')
-    , (' ', ' ')
-    ]
+subscript :: Map Char Char
+subscript = Map.fromList
+  [ ('χ', 'ᵪ')
+  , ('φ', 'ᵩ')
+  , ('ρ', 'ᵨ')
+  , ('γ', 'ᵧ')
+  , ('β', 'ᵦ')
+  , ('x', 'ₓ')
+  , ('v', 'ᵥ')
+  , ('u', 'ᵤ')
+  , ('r', 'ᵣ')
+  , ('o', 'ₒ')
+  , ('i', 'ᵢ')
+  , ('j', 'ⱼ')
+  , ('e', 'ₑ')
+  , ('a', 'ₐ')
+  , ('=', '₌')
+  , ('9', '₉')
+  , ('8', '₈')
+  , ('7', '₇')
+  , ('6', '₆')
+  , ('5', '₅')
+  , ('4', '₄')
+  , ('3', '₃')
+  , ('2', '₂')
+  , ('1', '₁')
+  , ('0', '₀')
+  , ('-', '₋')
+  , ('−', '₋')
+  , ('+', '₊')
+  , (')', '₎')
+  , ('(', '₍')
+  , (' ', ' ')
+  ]
 
-superscripts :: Map Char Char
-superscripts = Map.fromList
-    [ ('∊', 'ᵋ')
-    , ('χ', 'ᵡ')
-    , ('φ', 'ᵠ')
-    , ('ι', 'ᶥ')
-    , ('θ', 'ᶿ')
-    , ('δ', 'ᵟ')
-    , ('γ', 'ᵞ')
-    , ('β', 'ᵝ')
-    , ('α', 'ᵅ')
-    , ('Φ', 'ᶲ')
-    , ('z', 'ᶻ')
-    , ('y', 'ʸ')
-    , ('x', 'ˣ')
-    , ('w', 'ʷ')
-    , ('v', 'ᵛ')
-    , ('u', 'ᵘ')
-    , ('t', 'ᵗ')
-    , ('s', 'ˢ')
-    , ('r', 'ʳ')
-    , ('p', 'ᵖ')
-    , ('o', 'ᵒ')
-    , ('n', 'ⁿ')
-    , ('m', 'ᵐ')
-    , ('l', 'ˡ')
-    , ('k', 'ᵏ')
-    , ('j', 'ʲ')
-    , ('i', 'ⁱ')
-    , ('h', 'ʰ')
-    , ('g', 'ᵍ')
-    , ('f', 'ᶠ')
-    , ('e', 'ᵉ')
-    , ('d', 'ᵈ')
-    , ('c', 'ᶜ')
-    , ('b', 'ᵇ')
-    , ('a', 'ᵃ')
-    , ('W', 'ᵂ')
-    , ('V', 'ⱽ')
-    , ('U', 'ᵁ')
-    , ('T', 'ᵀ')
-    , ('R', 'ᴿ')
-    , ('P', 'ᴾ')
-    , ('O', 'ᴼ')
-    , ('N', 'ᴺ')
-    , ('M', 'ᴹ')
-    , ('L', 'ᴸ')
-    , ('K', 'ᴷ')
-    , ('J', 'ᴶ')
-    , ('I', 'ᴵ')
-    , ('H', 'ᴴ')
-    , ('G', 'ᴳ')
-    , ('E', 'ᴱ')
-    , ('D', 'ᴰ')
-    , ('B', 'ᴮ')
-    , ('A', 'ᴬ')
-    , ('=', '⁼')
-    , ('9', '⁹')
-    , ('8', '⁸')
-    , ('7', '⁷')
-    , ('6', '⁶')
-    , ('5', '⁵')
-    , ('4', '⁴')
-    , ('3', '³')
-    , ('2', '²')
-    , ('1', '¹')
-    , ('0', '⁰')
-    , ('-', '⁻')
-    , ('−', '⁻')
-    , ('+', '⁺')
-    , (')', '⁾')
-    , ('(', '⁽')
-    , ('∘', '°')
-    , (' ', ' ')
-    ]
+supscript :: Map Char Char
+supscript = Map.fromList
+  [ ('∊', 'ᵋ')
+  , ('χ', 'ᵡ')
+  , ('φ', 'ᵠ')
+  , ('ι', 'ᶥ')
+  , ('θ', 'ᶿ')
+  , ('δ', 'ᵟ')
+  , ('γ', 'ᵞ')
+  , ('β', 'ᵝ')
+  , ('α', 'ᵅ')
+  , ('Φ', 'ᶲ')
+  , ('z', 'ᶻ')
+  , ('y', 'ʸ')
+  , ('x', 'ˣ')
+  , ('w', 'ʷ')
+  , ('v', 'ᵛ')
+  , ('u', 'ᵘ')
+  , ('t', 'ᵗ')
+  , ('s', 'ˢ')
+  , ('r', 'ʳ')
+  , ('p', 'ᵖ')
+  , ('o', 'ᵒ')
+  , ('n', 'ⁿ')
+  , ('m', 'ᵐ')
+  , ('l', 'ˡ')
+  , ('k', 'ᵏ')
+  , ('j', 'ʲ')
+  , ('i', 'ⁱ')
+  , ('h', 'ʰ')
+  , ('g', 'ᵍ')
+  , ('f', 'ᶠ')
+  , ('e', 'ᵉ')
+  , ('d', 'ᵈ')
+  , ('c', 'ᶜ')
+  , ('b', 'ᵇ')
+  , ('a', 'ᵃ')
+  , ('W', 'ᵂ')
+  , ('V', 'ⱽ')
+  , ('U', 'ᵁ')
+  , ('T', 'ᵀ')
+  , ('R', 'ᴿ')
+  , ('P', 'ᴾ')
+  , ('O', 'ᴼ')
+  , ('N', 'ᴺ')
+  , ('M', 'ᴹ')
+  , ('L', 'ᴸ')
+  , ('K', 'ᴷ')
+  , ('J', 'ᴶ')
+  , ('I', 'ᴵ')
+  , ('H', 'ᴴ')
+  , ('G', 'ᴳ')
+  , ('E', 'ᴱ')
+  , ('D', 'ᴰ')
+  , ('B', 'ᴮ')
+  , ('A', 'ᴬ')
+  , ('=', '⁼')
+  , ('9', '⁹')
+  , ('8', '⁸')
+  , ('7', '⁷')
+  , ('6', '⁶')
+  , ('5', '⁵')
+  , ('4', '⁴')
+  , ('3', '³')
+  , ('2', '²')
+  , ('1', '¹')
+  , ('0', '⁰')
+  , ('-', '⁻')
+  , ('−', '⁻')
+  , ('+', '⁺')
+  , (')', '⁾')
+  , ('(', '⁽')
+  , ('∘', '°')
+  , (' ', ' ')
+  ]
 
 bb :: Map Char String
 bb = Map.fromList
@@ -724,8 +708,16 @@ styles = Map.fromList
   , ("\\texttt", tt)
   ]
 
-escapes :: Map String String
-escapes = Map.fromList
+forwardStyles :: Map String (Map Char String)
+forwardStyles = Map.fromList
+  [ ("\\bf", bf)
+  , ("\\cal", cal)
+  , ("\\it", it)
+  , ("\\tt", tt)
+  ]
+
+constants :: Map String String
+constants = Map.fromList
   [ ("\\&", "&")
   , ("\\$", "$")
   , ("\\{", "{")
@@ -733,7 +725,6 @@ escapes = Map.fromList
   , ("\\%", "%")
   , ("\\#", "#")
   , ("\\_", "_")
-  , ("$", "")  -- Ignore $
 
   , ("~", " ")
   , ("\\;", " ")
@@ -742,6 +733,8 @@ escapes = Map.fromList
   , ("\\quad", " ")
   , ("\\qquad", " ")
   , ("\\\\", "\n")
+
+  , ("$", "")  -- Ignore $
   , ("-", "-")
   , ("--", "\x2013")
   , ("---", "\x2014")
@@ -763,8 +756,6 @@ escapes = Map.fromList
   , ("\\textquestiondown", "¿")
   , ("\\textvisiblespace", "␣")
   , ("\\textminus", "\x2212")
-
-  -- Greek alphabet
   , ("\\alpha", "α")
   , ("\\beta", "β")
   , ("\\Gamma", "Γ")
@@ -1141,12 +1132,4 @@ escapes = Map.fromList
   , ("\\euro", "€")
   , ("\\EUR", "€")
   , ("\\texteuro", "€")
-  ]
-
-alias :: Map String String
-alias = Map.fromList
-  [ ("\\bf", "\\textbf")
-  , ("\\cal", "\\textcal")
-  , ("\\it", "\\textit")
-  , ("\\tt", "\\texttt")
   ]
