@@ -4,7 +4,6 @@ import           Prelude
 
 import           Control.Applicative   (liftA2)
 import           Control.Category      ((>>>))
-import           Control.Monad         (void)
 import           Data.Char             (GeneralCategory (ConnectorPunctuation, OtherNumber),
                                         generalCategory, isControl, isDigit,
                                         isLetter, isSpace)
@@ -16,7 +15,7 @@ import           Data.List             (isPrefixOf)
 import           Data.List.Extra       (trim)
 import           Data.Map.Strict       (Map)
 import qualified Data.Map.Strict       as Map
-import           Data.Maybe            (fromMaybe)
+import           Data.Maybe            (fromMaybe, maybeToList)
 import           Text.Parsec           hiding (count)
 
 import           Latuc.Mappings        (CombiningType (..))
@@ -35,7 +34,7 @@ singleton = (:[])
 
 isLiteralChar :: Char -> Bool
 isLiteralChar c =
-  not (isSpace c) && (c `notElem` "$^-_~{}\\")  -- WANT: this is uncollated knowledge
+  not (isSpace c) && (c `notElem` "$^-_~{}\\")
 
 isCombiningChar :: Char -> Bool
 isCombiningChar ch =
@@ -78,6 +77,7 @@ whitespaceCanBreak =
     Just DidntHaveBreak -> ""
     Just HadBreak       -> "\n\n"
 
+
 spacesBlock :: Parser String
 spacesBlock =
   whitespace1
@@ -96,22 +96,9 @@ commandParam = try (bracketBlock <|> commandBlock) <|> (singleton <$> satisfy is
 
 commandName :: Parser String
 commandName =
-  try ((fmap fold . many1) (string "-"))
-  <|> try ((fmap singleton . satisfy) (`elem` "$^_~"))
-  <|> liftA2 (<>) (string "\\") (try (many1 $ satisfy isLetter) <|> fmap singleton anyChar)
-
-commandLiteralCharsBlockInOption :: Parser String
-commandLiteralCharsBlockInOption = (many1 . satisfy) (\c -> c /= ']' && isLiteralChar c)
-
-commandBlockInOption :: Parser String
-commandBlockInOption =
-  try commandLiteralCharsBlockInOption
-  <|> try bracketBlock
-  <|> do
-          name <- commandName
-          if Map.member name Mappings.forwardStyles  -- WANT: this is uncollated knowledge
-          then pure ""
-          else handleCommand name
+  (fmap fold . many1) (string "-")
+  <|> (fmap singleton . satisfy) (`elem` "$^_~")
+  <|> liftA2 (<>) (string "\\") (many1 (satisfy isLetter) <|> fmap singleton anyChar)
 
 commandBlock :: Parser String
 commandBlock = commandName >>= handleCommand
@@ -128,22 +115,17 @@ handleCommand command =
   handleUnknown other =
     if not ("\\" `isPrefixOf` other)
     then pure other
-    else let
-      parserNoParam = pure other
-      parserUnary = do
-        p1 <- commandParam
-        pure $ other <> "{" <> p1 <> "}"
-      parserBinary = do
-        p1 <- commandParam
-        p2 <- commandParam
-        pure $ other <> "{" <> p1 <> "}{" <> p2 <> "}"
-      parserTernary = do
-        p1 <- commandParam
-        p2 <- commandParam
-        p3 <- commandParam
-        pure $ other <> "{" <> p1 <> "}{" <> p2 <> "}{" <> p3 <> "}"
+    else do
+      params <- upTo 3 commandParam
+      pure $ other <> (params & foldMap (\p -> "{" <> p <> "}"))
 
-      in try parserTernary <|> try parserBinary <|> try parserUnary <|> parserNoParam
+  upTo :: Int -> Parser a -> Parser [a]
+  upTo 0 _ = pure []
+  upTo n parser = do
+    xs <- upTo (n - 1) parser
+    mx <- optionMaybe parser
+    pure $ xs <> maybeToList mx
+
 
 block :: Parser String
 block = spacesBlock <|> literalCharsBlock <|> bracketBlock <|> commandBlock
@@ -167,8 +149,6 @@ commands =
 
   where
 
-  -- nb. WANT: length-polymorphic "parse args" function using typelevel nats
-
   mkConstant :: String -> Parser String
   mkConstant = pure
 
@@ -181,17 +161,23 @@ commands =
   mkUnaryWithOption :: (String -> String -> String) -> Parser String
   mkUnaryWithOption fun = do
     whitespaceNoBreak
-    opt <- optionMaybe (do
-      void $ string "["
-      whitespaceNoBreak
-      c <- fold <$> many commandBlockInOption
-      whitespaceNoBreak
-      void $ string "]"
-      pure c)
+    opt <- fmap (fromMaybe "") . optionMaybe $
+      string "[" *> whitespaceNoBreak *> (fold <$> many inBlock) <* whitespaceNoBreak <* string "]"
     whitespaceNoBreak
     p <- commandParam
-    pure $ fun (opt & fromMaybe "") p
+    pure $ fun opt p
 
+    where
+
+    inBlock :: Parser String
+    inBlock =
+      ((many1 . satisfy) (\c -> c /= ']' && isLiteralChar c))
+      <|> bracketBlock
+      <|> do
+            name <- commandName
+            if Map.member name Mappings.forwardStyles
+            then pure ""
+            else handleCommand name
 
   mkBinary :: (String -> String -> String) -> Parser String
   mkBinary fun = do
@@ -205,8 +191,7 @@ commands =
   cConstants = mkConstant <$> Mappings.constants
 
   cCombining :: Map String (Parser String)
-  cCombining =
-    (mkUnary . uncurry applyCombining) <$> Mappings.combining
+  cCombining = (mkUnary . uncurry applyCombining) <$> Mappings.combining
 
   cStyles :: Map String (Parser String)
   cStyles =
@@ -285,11 +270,8 @@ commands =
               Nothing -> "(" <> maybeParenthesize num <> "/" <> maybeParenthesize den <> ")"
 
   cSqrt :: Map String (Parser String)
-  cSqrt = Map.singleton "\\sqrt" (mkUnaryWithOption sqrtImpl)
+  cSqrt = Map.singleton "\\sqrt" (mkUnaryWithOption makeSqrt)
     where
-
-    sqrtImpl :: String -> String -> String
-    sqrtImpl = makeSqrt
 
     makeSqrt :: String -> String -> String
     makeSqrt index radicand =
@@ -305,14 +287,14 @@ commands =
 
 
 applyCombining :: Char -> CombiningType -> (String -> String)
-applyCombining combiningChar combiningType str =
+applyCombining (singleton -> combiner) ctype str =
   let strOrSpace = if str == "" then " " else str
-  in case combiningType of
+  in case ctype of
     FirstChar ->
       let i = (+ 1) . length . takeWhile isCombiningOrControlChar . drop 1 $ strOrSpace
-      in take i strOrSpace <> [combiningChar] <> drop i strOrSpace
+      in take i strOrSpace <> combiner <> drop i strOrSpace
     LastChar ->
-      strOrSpace <> [combiningChar]
+      strOrSpace <> combiner
     EveryChar ->
       if str == "" then ""
       else let
@@ -321,21 +303,12 @@ applyCombining combiningChar combiningType str =
         go s =
           let tk = take 1 <> (drop 1 >>> takeWhile isCombiningOrControlChar)
               dp = drop 1 >>> dropWhile isCombiningOrControlChar
-              in tk s <> [combiningChar] <> go (dp s)
+              in tk s <> combiner <> go (dp s)
         in result
 
 
-runIt :: Parser String -> (String -> Either ParseError String)
-runIt parser = runParser parser () "<input>"
-
 parse :: String -> Either ParseError String
-parse = runIt (blocks <* eof)
-
-parseBlock :: String -> Either ParseError String
-parseBlock = runIt block
-
-parseBlocks :: String -> Either ParseError String
-parseBlocks = runIt blocks
+parse = runParser (blocks <* eof) () "<input>"
 
 convert :: String -> String
 convert latex =
