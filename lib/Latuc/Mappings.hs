@@ -1041,6 +1041,7 @@ constants = Map.fromList
   , ("\\cap", "∩")
   , ("\\bumpeq", "≏")
   , ("\\bullet", "∙")
+  , ("\\bull", "•")
   , ("\\boxtimes", "⊠")
   , ("\\boxplus", "⊞")
   , ("\\boxminus", "⊟")
