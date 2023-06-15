@@ -718,6 +718,8 @@ forwardStyles = Map.fromList
 
 constants :: Map String String
 constants = Map.fromList
+
+    -- Escapes
   [ ("\\&", "&")
   , ("\\$", "$")
   , ("\\{", "{")
@@ -726,6 +728,7 @@ constants = Map.fromList
   , ("\\#", "#")
   , ("\\_", "_")
 
+    -- Whitespace
   , ("~", " ")
   , ("\\;", " ")
   , ("\\:", " ")
@@ -734,6 +737,15 @@ constants = Map.fromList
   , ("\\qquad", " ")
   , ("\\\\", "\n")
 
+    -- The rest of em (pt I, unalphabetized)
+  , ("\\llbracket", "⟦")
+  , ("\\rrbracket", "⟧")
+  , ("\\llparenthesis", "⦇")
+  , ("\\rrparenthesis", "⦈")
+  , ("\\lor", "∨")
+  , ("\\land", "∧")
+
+    -- The rest of em (pt II, alphabetized)
   , ("$", "")  -- Ignore $
   , ("-", "-")
   , ("--", "\x2013")
