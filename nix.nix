@@ -7,6 +7,7 @@ ghc = hpkgs.ghcWithPackages (p: with p; [ parsec extra ]);
 shell = pkgs.mkShell {
   buildInputs = [ ghc hpkgs.Cabal pkgs.ghcid hpkgs.stylish-haskell ];
   shellHook = ''
+    echo "run 'cabal run test' or 'echo stuff | cabal run latuc' or 'devt'"
     function devt {(
       shopt -s globstar
       ls ./**/*.hs | entr -s '
