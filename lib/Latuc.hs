@@ -2,7 +2,6 @@ module Latuc where
 
 import           Prelude
 
-import           Control.Applicative   (liftA2)
 import           Control.Category      ((>>>))
 import           Data.Char             (GeneralCategory (ConnectorPunctuation, OtherNumber),
                                         generalCategory, isControl, isDigit,
