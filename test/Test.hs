@@ -90,6 +90,8 @@ impl = do
     "i\\textsubscript{i\\textsubscript{123 }}"
    `shouldBe` "i_(i₁₂₃)"
   Latuc.convert "e_-" `shouldBe` "e₋"
+  Latuc.convert "e_b" `shouldBe` "e_b"
+  Latuc.convert "e_{xb}" `shouldBe` "e_(xb)"
 
   Latuc.parse "_" `shouldFail` ()
   Latuc.parse "_ " `shouldFail` ()

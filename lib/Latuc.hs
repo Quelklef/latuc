@@ -15,6 +15,7 @@ import           Data.List.Extra       (trim)
 import           Data.Map.Strict       (Map)
 import qualified Data.Map.Strict       as Map
 import           Data.Maybe            (fromMaybe, maybeToList)
+import           Data.Traversable      (for)
 import           Text.Parsec           hiding (count)
 
 import           Latuc.Mappings        (CombiningType (..))
@@ -224,25 +225,24 @@ commands =
   cSubSupScr :: Map String (Parser String)
   cSubSupScr =
     Map.fromList
-      [ ("_"                , mkUnary subscrImpl)
-      , ("\\textsubscript"  , mkUnary subscrImpl)
-      , ("^"                , mkUnary supscrImpl)
-      , ("\\textsuperscript", mkUnary supscrImpl)
+      [ ("_"                , mkSubSup "_" Mappings.subscript)
+      , ("\\textsubscript"  , mkSubSup "_" Mappings.subscript)
+      , ("^"                , mkSubSup "^" Mappings.supscript)
+      , ("\\textsuperscript", mkSubSup "^" Mappings.supscript)
       ]
 
     where
 
-    subscrImpl :: String -> String
-    subscrImpl (trim -> str) =
-      str
-      & traverse (flip Map.lookup Mappings.subscript)
-      & fromMaybe ("_(" <> str <> ")")
+    mkSubSup :: String -> Map Char Char -> Parser String
+    mkSubSup sigil chars =
+      mkUnary \(trim -> str) ->
+        for str (\ch -> Map.lookup ch chars)
+        & fromMaybe (sigil <> parenthesizeIfNotSingleChar str)
 
-    supscrImpl :: String -> String
-    supscrImpl (trim -> str) =
-      str
-      & traverse (flip Map.lookup Mappings.supscript)
-      & fromMaybe ("^(" <> str <> ")")
+    parenthesizeIfNotSingleChar :: String -> String
+    parenthesizeIfNotSingleChar = \case
+      [c] -> [c]
+      s -> "(" <> s <> ")"
 
   cFrac :: Map String (Parser String)
   cFrac = Map.singleton "\\frac" (mkBinary fracImpl)
